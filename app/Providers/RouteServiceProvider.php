@@ -45,4 +45,16 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
     }
+    public function redirectTo()
+{
+    $role = auth()->user()->role_id;
+
+    return match ($role) {
+        1 => '/admin/dashboard',
+        3 => '/appointments',
+        4 => '/home',
+        5 => '/coordinator/appointments', // 👈 Coordinador redirige aquí
+        default => '/',
+    };
+}
 }

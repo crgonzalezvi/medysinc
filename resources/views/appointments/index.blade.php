@@ -66,7 +66,7 @@
                                     @endif
                                 @endif
                             
-                                @if (Auth::user()->role_id == 3) {{-- Doctor --}}
+                                {{-- @if (Auth::user()->role_id == 3) 
                                     @if ($appointment->status == 'pendiente')
                                         <form action="{{ route('appointments.confirm', $appointment->id) }}" method="POST" style="display:inline;">
                                             @csrf
@@ -89,6 +89,15 @@
                                             <i class="fas fa-eye"></i> Ver detalles
                                         </a>
                                     @endif
+                                @endif --}}
+                                @if (Auth::user()->role_id == 3 && $appointment->status == 'confirmada')
+                                    <a href="{{ route('appointments.showAttendForm', $appointment->id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-user-md"></i> Atender
+                                    </a>
+                                @elseif (Auth::user()->role_id == 3 && $appointment->status == 'atendida')
+                                    <a href="{{ route('appointments.showDetails', $appointment->id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> Ver detalles
+                                    </a>
                                 @endif
                             </td>
                             

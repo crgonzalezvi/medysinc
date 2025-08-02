@@ -10,7 +10,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MedicationController;
-
+use App\Http\Controllers\CoordinatorAppointmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -135,3 +135,8 @@ Route::middleware('auth','role:admin')->group(function () {
 
 // Route::put('/patients/profile', [PatientController::class, 'update'])->name('patients.profile.update');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/coordinator/appointments', [CoordinatorAppointmentController::class, 'index'])->name('coordinator.appointments.index');
+    Route::post('/coordinator/appointments/{id}/approve', [CoordinatorAppointmentController::class, 'approve'])->name('coordinator.appointments.approve');
+    Route::post('/coordinator/appointments/{id}/reject', [CoordinatorAppointmentController::class, 'reject'])->name('coordinator.appointments.reject');
+});

@@ -36,53 +36,83 @@ class LoginController extends Controller
      * @return void
      */
 
-     protected function redirectTo()
-     {
-         if (Auth::check()) {
-             $user = Auth::user();
- 
-             // Verificar el ID del rol del usuario
-             switch ($user->role_id) {
-                 case 1: // Admin
-                     return '/admin/dashboard';
-                 case 3: // Doctor
-                     return '/appointments';
-                 case 4: // Paciente
-                     return '/home';
-                 default:
-                     return '/home'; // Redirección por defecto
-             }
-         }
- 
-         return '/home';
-     }
+    protected function redirectTo()
+{
+    if (Auth::check()) {
+        $user = Auth::user();
 
-     public function login(Request $request)
-     {
-         $request->validate([
-             'email' => 'required|email',
-             'password' => 'required',
-            //  'g-recaptcha-response' => 'required|captcha',
-         ]);
+        switch ($user->role_id) {
+            case 1:
+                return '/admin/dashboard';
+            case 3:
+                return '/appointments';
+            case 4:
+                return '/home';
+            case 5:
+                return '/coordinator/appointments'; // 👈 NUEVO
+            default:
+                return '/home';
+        }
+    }
+
+    return '/home';
+}
+
+    //  public function login(Request $request)
+    //  {
+    //      $request->validate([
+    //          'email' => 'required|email',
+    //          'password' => 'required',
+    //         //  'g-recaptcha-response' => 'required|captcha',
+    //      ]);
      
-         if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
-             $user = Auth::user();
+    //      if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+    //          $user = Auth::user();
      
-             // Verificar el ID del rol del usuario
-             switch ($user->role_id) {
-                 case 1: // Admin
-                     return redirect()->intended('/admin/dashboard');
-                 case 3: // Doctor
-                     return redirect()->intended('/appointments');
-                 case 4: // Paciente
-                     return redirect()->intended('/home');
-                 default:
-                     return redirect()->intended('/home'); // Redirección por defecto
-             }
-         }
+    //          // Verificar el ID del rol del usuario
+    //          switch ($user->role_id) {
+    //              case 1: // Admin
+    //                  return redirect()->intended('/admin/dashboard');
+    //              case 3: // Doctor
+    //                  return redirect()->intended('/appointments');
+    //              case 4: // Paciente
+    //                  return redirect()->intended('/home');
+    //              default:
+    //                  return redirect()->intended('/home'); // Redirección por defecto
+    //          }
+    //      }
      
-         return back()->withErrors(['email' => 'Credenciales incorrectas']);
-     }
+    //      return back()->withErrors(['email' => 'Credenciales incorrectas']);
+    //  }
+
+    public function login(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        // 'g-recaptcha-response' => 'required|captcha',
+    ]);
+
+    if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+        $user = Auth::user();
+
+        // Verificar el ID del rol del usuario
+        switch ($user->role_id) {
+            case 1: // Admin
+                return redirect()->intended('/admin/dashboard');
+            case 3: // Doctor
+                return redirect()->intended('/appointments');
+            case 4: // Paciente
+                return redirect()->intended('/home');
+            case 5: // Coordinador
+                return redirect()->intended('/coordinator/appointments'); // 👈 NUEVO
+            default:
+                return redirect()->intended('/home'); // Redirección por defecto
+        }
+    }
+
+    return back()->withErrors(['email' => 'Credenciales incorrectas']);
+}
      
 
     public function __construct()
