@@ -8,31 +8,53 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    <form method="GET" action="{{ route('coordinator.appointments.index') }}" class="mb-4 row">
+        <div class="col-md-4">
+            <input type="text" name="search_patient" class="form-control" placeholder="Buscar paciente por cédula o nombre" value="{{ request('search_patient') }}">
+        </div>
+
+        <div class="col-md-4">
+            <select name="doctor_id" class="form-control">
+                <option value="">-- Filtrar por Doctor --</option>
+                @foreach($doctors as $doctor)
+                    <option value="{{ $doctor->id }}" {{ request('doctor_id') == $doctor->id ? 'selected' : '' }}>
+                        {{ $doctor->user->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a href="{{ route('coordinator.appointments.index') }}" class="btn btn-secondary">Limpiar</a>
+        </div>
+    </form>
+
     @foreach($appointments as $appointment)
         <div class="card mb-3 shadow-sm">
             <div class="card-body">
                 <strong>Paciente:</strong> {{ $appointment->patient->name ?? 'No disponible' }}<br>
                 <strong>Doctor:</strong> {{ $appointment->doctor->user->name ?? 'No disponible' }}<br>
                 <strong>Especialidad:</strong> {{ $appointment->specialty->name ?? 'No disponible' }}<br>
-                <strong>Fecha:</strong> {{ $appointment->appointment_date }}<br>
-                <strong>Estado:</strong> {{ ucfirst($appointment->status) }}<br><br>
+                <strong>Fecha:</strong> {{ $appointment->appointment_date ?? 'Sin definir' }}<br>
+                <strong>Estado:</strong> 
+                <span class="badge 
+                    @if($appointment->status == 'pendiente') bg-warning text-dark
+                    @elseif($appointment->status == 'confirmada') bg-success
+                    @elseif($appointment->status == 'cancelada') bg-danger
+                    @elseif($appointment->status == 'atendida') bg-info
+                    @else bg-secondary
+                    @endif">
+                    {{ ucfirst($appointment->status) }}
+                </span>
+                <br><br>
 
                 @if($appointment->status == 'pendiente')
-                    <form action="{{ route('coordinator.appointments.approve', $appointment->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button class="btn btn-success btn-sm">
-                            <i class="fas fa-check"></i> Aprobar
-                        </button>
-                    </form>
-
-                    <form action="{{ route('coordinator.appointments.reject', $appointment->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button class="btn btn-danger btn-sm">
-                            <i class="fas fa-times"></i> Rechazar
-                        </button>
-                    </form>
+                    <a href="{{ route('coordinator.appointments.manage', $appointment->id) }}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-calendar-alt"></i> Gestionar agenda
+                    </a>
                 @else
-                    <span class="badge bg-secondary">Ya gestionada</span>
+                    <span class="text-muted">Ya gestionada</span>
                 @endif
             </div>
         </div>

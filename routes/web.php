@@ -139,4 +139,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/coordinator/appointments', [CoordinatorAppointmentController::class, 'index'])->name('coordinator.appointments.index');
     Route::post('/coordinator/appointments/{id}/approve', [CoordinatorAppointmentController::class, 'approve'])->name('coordinator.appointments.approve');
     Route::post('/coordinator/appointments/{id}/reject', [CoordinatorAppointmentController::class, 'reject'])->name('coordinator.appointments.reject');
+    Route::get('/coordinator/appointments/{id}/manage', [CoordinatorAppointmentController::class, 'manage'])->name('coordinator.appointments.manage');
+    Route::post('/coordinator/appointments/{id}/schedule', [CoordinatorAppointmentController::class, 'approve'])->name('coordinator.appointments.schedule');
+
+
 });
