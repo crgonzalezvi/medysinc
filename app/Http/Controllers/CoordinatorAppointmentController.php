@@ -38,17 +38,34 @@ class CoordinatorAppointmentController extends Controller
     public function schedule(Request $request, $id)
 {
     $request->validate([
-        'scheduled_date' => 'required|date',
+        'scheduled_date' => 'required|date|after_or_equal:today',
     ]);
 
     $appointment = Appointment::findOrFail($id);
+
+    // Validar que no haya una cita para este doctor en ±30 minutos
+    $scheduledDate = \Carbon\Carbon::parse($request->scheduled_date);
+    $startRange = $scheduledDate->copy()->subMinutes(30);
+    $endRange = $scheduledDate->copy()->addMinutes(30);
+
+    $exists = Appointment::where('doctor_id', $appointment->doctor_id)
+        ->where('status', 'confirmada')
+        ->whereBetween('scheduled_date', [$startRange, $endRange])
+        ->exists();
+
+    if ($exists) {
+        return back()->with('error', 'Este doctor ya tiene una cita confirmada en un rango de 30 minutos.');
+    }
+
+    // Guardar la fecha definitiva
     $appointment->scheduled_date = $request->scheduled_date;
     $appointment->status = 'confirmada';
     $appointment->save();
 
     return redirect()->route('coordinator.appointments.index')
-        ->with('success', 'Cita agendada correctamente.');
+        ->with('success', 'Cita gestionada y confirmada correctamente.');
 }
+
 
 
     public function manage($id)
