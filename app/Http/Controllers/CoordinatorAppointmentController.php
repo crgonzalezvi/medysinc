@@ -35,6 +35,22 @@ class CoordinatorAppointmentController extends Controller
         return view('coordinator.appointments.index', compact('appointments', 'doctors'));
     }
 
+    public function schedule(Request $request, $id)
+{
+    $request->validate([
+        'scheduled_date' => 'required|date',
+    ]);
+
+    $appointment = Appointment::findOrFail($id);
+    $appointment->scheduled_date = $request->scheduled_date;
+    $appointment->status = 'confirmada';
+    $appointment->save();
+
+    return redirect()->route('coordinator.appointments.index')
+        ->with('success', 'Cita agendada correctamente.');
+}
+
+
     public function manage($id)
     {
         $appointment = Appointment::with(['patient', 'doctor.user', 'specialty'])->findOrFail($id);

@@ -14,6 +14,7 @@ class Appointment extends Model
         'doctor_id',
         'specialty_id',
         'appointment_date',
+        'scheduled_date',
         'status',
         'reason',
     ];

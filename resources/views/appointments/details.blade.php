@@ -25,7 +25,13 @@
             <h5 class="card-title mb-0">Información de la Cita</h5>
         </div>
         <div class="card-body">
-            <p><strong>Fecha y Hora:</strong> {{ $appointment->appointment_date }}</p>
+            {{-- <p><strong>Fecha y Hora:</strong> {{ $appointment->appointment_date }}</p> --}}
+            <p><strong>Fecha y Hora asignada:</strong> 
+    {{ $appointment->scheduled_date 
+        ? \Carbon\Carbon::parse($appointment->scheduled_date)->format('d/m/Y h:i A') 
+        : \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y h:i A') }}
+</p>
+
             <p><strong>Médico:</strong> {{ $appointment->doctor->user->name }}</p>
             <p><strong>Especialidad:</strong> {{ $appointment->specialty->name }}</p>
         </div>

@@ -41,7 +41,15 @@
                             <td>{{ $appointment->patient->name ?? 'Sin paciente' }}</td>
                             <td>{{ $appointment->doctor->user->name ?? 'Sin doctor' }}</td>
                             <td>{{ $appointment->specialty->name ?? 'Sin especialidad' }}</td>
-                            <td>{{ $appointment->appointment_date ?? 'Fecha no disponible' }}</td>
+                            <td>
+    @if ($appointment->scheduled_date)
+        {{ \Carbon\Carbon::parse($appointment->scheduled_date)->format('d/m/Y h:i A') }}
+        <span class="badge bg-success ms-1">Definitiva</span>
+    @else
+        {{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y h:i A') }}
+        <span class="badge bg-warning text-dark ms-1">Tentativa</span>
+    @endif
+</td>
                             <td>
                                 <span class="badge
                                     @if ($appointment->status == 'pendiente') badge-warning text-black
@@ -65,31 +73,6 @@
                                         </a>
                                     @endif
                                 @endif
-                            
-                                {{-- @if (Auth::user()->role_id == 3) 
-                                    @if ($appointment->status == 'pendiente')
-                                        <form action="{{ route('appointments.confirm', $appointment->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-success">
-                                                <i class="fas fa-check"></i> Confirmar
-                                            </button>
-                                        </form>
-                                        <form action="{{ route('appointments.cancel', $appointment->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-times"></i> Cancelar
-                                            </button>
-                                        </form>
-                                    @elseif ($appointment->status == 'confirmada')
-                                        <a href="{{ route('appointments.showAttendForm', $appointment->id) }}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-user-md"></i> Atender
-                                        </a>
-                                    @elseif ($appointment->status == 'atendida')
-                                        <a href="{{ route('appointments.showDetails', $appointment->id) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> Ver detalles
-                                        </a>
-                                    @endif
-                                @endif --}}
                                 @if (Auth::user()->role_id == 3 && $appointment->status == 'confirmada')
                                     <a href="{{ route('appointments.showAttendForm', $appointment->id) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-user-md"></i> Atender

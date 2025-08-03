@@ -36,7 +36,16 @@
                 <strong>Paciente:</strong> {{ $appointment->patient->name ?? 'No disponible' }}<br>
                 <strong>Doctor:</strong> {{ $appointment->doctor->user->name ?? 'No disponible' }}<br>
                 <strong>Especialidad:</strong> {{ $appointment->specialty->name ?? 'No disponible' }}<br>
-                <strong>Fecha:</strong> {{ $appointment->appointment_date ?? 'Sin definir' }}<br>
+                <strong>Fecha tentativa:</strong>
+{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y h:i A') }}<br>
+
+<strong>Fecha definitiva:</strong>
+@if ($appointment->scheduled_date)
+    {{ \Carbon\Carbon::parse($appointment->scheduled_date)->format('d/m/Y h:i A') }}
+@else
+    <span class="text-muted">Aún no asignada</span>
+@endif
+<br>
                 <strong>Estado:</strong> 
                 <span class="badge 
                     @if($appointment->status == 'pendiente') bg-warning text-dark

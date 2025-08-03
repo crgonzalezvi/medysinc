@@ -141,6 +141,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/coordinator/appointments/{id}/reject', [CoordinatorAppointmentController::class, 'reject'])->name('coordinator.appointments.reject');
     Route::get('/coordinator/appointments/{id}/manage', [CoordinatorAppointmentController::class, 'manage'])->name('coordinator.appointments.manage');
     Route::post('/coordinator/appointments/{id}/schedule', [CoordinatorAppointmentController::class, 'approve'])->name('coordinator.appointments.schedule');
-
+    Route::post('/coordinator/appointments/{id}/schedule', [CoordinatorAppointmentController::class, 'schedule'])->name('coordinator.appointments.schedule');
 
 });
