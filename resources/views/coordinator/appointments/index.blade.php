@@ -68,5 +68,9 @@
             </div>
         </div>
     @endforeach
+    <div class="d-flex justify-content-center">
+    {{ $appointments->withQueryString()->links() }}
+</div>
+
 </div>
 @endsection

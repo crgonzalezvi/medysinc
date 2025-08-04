@@ -28,57 +28,87 @@ class CoordinatorAppointmentController extends Controller
             $query->where('doctor_id', $request->doctor_id);
         }
 
-        $appointments = $query->get();
+        $appointments = $query->paginate(10); // Puedes ajustar el 10 al número de citas por página
 
         $doctors = \App\Models\Doctor::with('user')->get();
 
         return view('coordinator.appointments.index', compact('appointments', 'doctors'));
     }
 
-    public function schedule(Request $request, $id)
+   public function schedule(Request $request, $id)
 {
     $request->validate([
-        'scheduled_date' => 'required|date|after_or_equal:today',
+        'scheduled_date' => 'required|date',
     ]);
 
     $appointment = Appointment::findOrFail($id);
 
-    // Validar que no haya una cita para este doctor en ±30 minutos
-    $scheduledDate = \Carbon\Carbon::parse($request->scheduled_date);
-    $startRange = $scheduledDate->copy()->subMinutes(30);
-    $endRange = $scheduledDate->copy()->addMinutes(30);
+    // Convertimos la fecha seleccionada a Carbon para comparar
+    $nuevaFecha = \Carbon\Carbon::parse($request->scheduled_date);
 
-    $exists = Appointment::where('doctor_id', $appointment->doctor_id)
-        ->where('status', 'confirmada')
-        ->whereBetween('scheduled_date', [$startRange, $endRange])
+    // Obtenemos el rango de tiempo: ±30 minutos
+    $inicio = $nuevaFecha->copy()->subMinutes(30);
+    $fin = $nuevaFecha->copy()->addMinutes(30);
+
+    // Validamos si hay conflicto de horario con este doctor
+    $conflicto = Appointment::where('doctor_id', $appointment->doctor_id)
+        ->where('id', '!=', $appointment->id)
+        ->whereBetween('appointment_date', [$inicio, $fin])
+        ->whereIn('status', ['confirmada', 'pendiente'])
         ->exists();
 
-    if ($exists) {
-        return back()->with('error', 'Este doctor ya tiene una cita confirmada en un rango de 30 minutos.');
+    if ($conflicto) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Este doctor ya tiene una cita asignada en un rango de 30 minutos.');
     }
 
-    // Guardar la fecha definitiva
-    $appointment->scheduled_date = $request->scheduled_date;
+    // Si no hay conflicto, se asigna la nueva fecha
+    $appointment->scheduled_date = $nuevaFecha;
+    $appointment->appointment_date = $nuevaFecha;
     $appointment->status = 'confirmada';
     $appointment->save();
 
     return redirect()->route('coordinator.appointments.index')
-        ->with('success', 'Cita gestionada y confirmada correctamente.');
+        ->with('success', 'Cita confirmada correctamente.');
 }
 
 
 
+
+    // public function manage($id)
+    // {
+    //     $appointment = Appointment::with(['patient', 'doctor.user', 'specialty'])->findOrFail($id);
+
+    //     if ($appointment->status !== 'pendiente') {
+    //         return redirect()->route('coordinator.appointments.index')
+    //             ->with('error', 'Esta cita ya ha sido gestionada.');
+    //     }
+
+    //     return view('coordinator.appointments.manage', compact('appointment'));
+    // }
+
     public function manage($id)
-    {
-        $appointment = Appointment::with(['patient', 'doctor.user', 'specialty'])->findOrFail($id);
+{
+    $appointment = Appointment::with(['patient', 'doctor.user', 'specialty'])->findOrFail($id);
 
-        if ($appointment->status !== 'pendiente') {
-            return redirect()->route('coordinator.appointments.index')
-                ->with('error', 'Esta cita ya ha sido gestionada.');
-        }
-
-        return view('coordinator.appointments.manage', compact('appointment'));
+    if ($appointment->status !== 'pendiente') {
+        return redirect()->route('coordinator.appointments.index')
+            ->with('error', 'Esta cita ya ha sido gestionada.');
     }
+
+    $doctor = $appointment->doctor;
+    $fechaTentativa = \Carbon\Carbon::parse($appointment->appointment_date)->toDateString();
+
+    $otrasCitas = Appointment::where('doctor_id', $doctor->id)
+        ->whereDate('appointment_date', $fechaTentativa)
+        ->where('id', '!=', $appointment->id)
+        ->orderBy('appointment_date')
+        ->get();
+
+    return view('coordinator.appointments.manage', compact('appointment', 'otrasCitas'));
+}
+
 
     public function approve(Request $request, $id)
     {
