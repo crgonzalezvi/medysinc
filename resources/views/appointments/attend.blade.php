@@ -67,23 +67,96 @@
         });
 
         function addTreatmentTag(text) {
-            if (text === "" || selectedTreatments.includes(text)) return;
-            selectedTreatments.push(text);
-            updateHiddenInput();
-            const tag = document.createElement("span");
-            tag.classList.add("badge", "bg-primary", "me-2", "p-2");
-            tag.textContent = text;
-            const removeBtn = document.createElement("button");
-            removeBtn.type = "button";
-            removeBtn.classList.add("btn-close", "ms-2");
-            removeBtn.addEventListener("click", function () {
-                treatmentTagsContainer.removeChild(tag);
-                selectedTreatments = selectedTreatments.filter(t => t !== text);
-                updateHiddenInput();
-            });
-            tag.appendChild(removeBtn);
-            treatmentTagsContainer.appendChild(tag);
-        }
+    if (text === "" || selectedTreatments.includes(text)) return;
+    selectedTreatments.push(text);
+    updateHiddenInput();
+
+    const tag = document.createElement("span");
+    tag.classList.add("badge", "bg-primary", "me-2", "p-2");
+    tag.textContent = text;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.classList.add("btn-close", "ms-2");
+    removeBtn.addEventListener("click", function () {
+        treatmentTagsContainer.removeChild(tag);
+        selectedTreatments = selectedTreatments.filter(t => t !== text);
+        updateHiddenInput();
+    });
+
+    tag.appendChild(removeBtn);
+    treatmentTagsContainer.appendChild(tag);
+
+    // 🔍 EXTRAER principio activo para consulta en DailyMed
+    const genericName = text.split(" ")[0].toLowerCase();
+
+    fetch(`https://dailymed.nlm.nih.gov/dailymed/services/v2/drugnames.json?name=${genericName}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.data && data.data.length > 0) {
+                const info = `⚠️ Posibles contraindicaciones para "${genericName}".`;
+                const alertDiv = document.createElement("div");
+                alertDiv.classList.add("alert", "alert-warning", "mt-2");
+                alertDiv.innerText = info;
+                tag.appendChild(alertDiv);
+            } else {
+                const noInfo = document.createElement("div");
+                noInfo.classList.add("alert", "alert-secondary", "mt-2");
+                noInfo.innerText = `ℹ️ No se encontraron contraindicaciones para "${genericName}".`;
+                tag.appendChild(noInfo);
+            }
+        })
+        .catch(error => {
+            console.error("Error consultando DailyMed:", error);
+        });
+}
+
+
+
+        function fetchContraindicationsFromDailyMed(drugName) {
+    const searchUrl = `https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json?drug_name=${encodeURIComponent(drugName)}`;
+
+    fetch(searchUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.data || data.data.length === 0) {
+                showContraindicationsAlert(drugName, 'No se encontraron contraindicaciones en DailyMed.');
+                return;
+            }
+
+            const setId = data.data[0].setid;
+
+            const detailUrl = `https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/${setId}.json`;
+
+            return fetch(detailUrl);
+        })
+        .then(response => response?.json())
+        .then(details => {
+            if (!details || !details.data || !details.data.sections) return;
+
+            const contraindicationsSection = details.data.sections.find(
+                s => s.title && s.title.toLowerCase().includes('contraindications')
+            );
+
+            if (contraindicationsSection) {
+                showContraindicationsAlert(drugName, contraindicationsSection.text);
+            } else {
+                showContraindicationsAlert(drugName, 'No se encontraron contraindicaciones específicas.');
+            }
+        })
+        .catch(err => {
+            console.warn(`Error consultando contraindicaciones para ${drugName}`, err);
+        });
+}
+
+function showContraindicationsAlert(drug, message) {
+    const alert = document.createElement("div");
+    alert.classList.add("alert", "alert-warning", "mt-2");
+    alert.innerHTML = `<strong>${drug}:</strong><br>${message}`;
+    document.getElementById("treatmentTags").appendChild(alert);
+}
+// Validación del formulario al enviar
+
 
         function updateHiddenInput() {
             hiddenInput.value = selectedTreatments.join(", ");
