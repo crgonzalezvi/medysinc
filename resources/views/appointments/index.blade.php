@@ -53,6 +53,7 @@
                             <td>
                                 <span class="badge
                                     @if ($appointment->status == 'pendiente') badge-warning text-black
+                                    
                                     @elseif ($appointment->status == 'confirmada') badge-success text-black
                                     @elseif ($appointment->status == 'atendida') badge-info text-black
                                     @elseif ($appointment->status == 'cancelada') badge-danger text-black
@@ -63,25 +64,37 @@
                             </td>
                             <td>
                                 @if (Auth::user()->role_id == 4) {{-- Paciente --}}
-                                    @if ($appointment->status == 'pendiente')
-                                        <button class="btn btn-sm btn-warning text-black" disabled>
-                                            <i class="fas fa-hourglass-half"></i> En trámite
-                                        </button>
-                                    @elseif ($appointment->status == 'confirmada' || $appointment->status == 'atendida')
-                                        <a href="{{ route('appointments.showDetails', $appointment->id) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> Ver detalles
-                                        </a>
-                                    @endif
-                                @endif
-                                @if (Auth::user()->role_id == 3 && $appointment->status == 'confirmada')
-                                    <a href="{{ route('appointments.showAttendForm', $appointment->id) }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-user-md"></i> Atender
-                                    </a>
-                                @elseif (Auth::user()->role_id == 3 && $appointment->status == 'atendida')
-                                    <a href="{{ route('appointments.showDetails', $appointment->id) }}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i> Ver detalles
-                                    </a>
-                                @endif
+    @if ($appointment->status == 'pendiente')
+        <button class="btn btn-sm btn-warning text-black" disabled>
+            <i class="fas fa-hourglass-half"></i> En trámite
+        </button>
+    @elseif ($appointment->status == 'confirmada')
+        <a href="https://meet.jit.si/cita-{{ $appointment->id }}" target="_blank" class="btn btn-sm btn-success">
+            <i class="fas fa-video"></i> Videollamada
+        </a>
+        <a href="{{ route('appointments.showDetails', $appointment->id) }}" class="btn btn-sm btn-info">
+            <i class="fas fa-eye"></i> Ver detalles
+        </a>
+    @elseif ($appointment->status == 'atendida')
+        <a href="{{ route('appointments.showDetails', $appointment->id) }}" class="btn btn-sm btn-info">
+            <i class="fas fa-eye"></i> Ver detalles
+        </a>
+    @endif
+@endif
+
+                               @if (Auth::user()->role_id == 3 && $appointment->status == 'confirmada')
+    <a href="https://meet.jit.si/cita-{{ $appointment->id }}" target="_blank" class="btn btn-sm btn-success">
+        <i class="fas fa-video"></i> Videollamada
+    </a>
+    <a href="{{ route('appointments.showAttendForm', $appointment->id) }}" class="btn btn-sm btn-primary">
+        <i class="fas fa-user-md"></i> Atender
+    </a>
+@elseif (Auth::user()->role_id == 3 && $appointment->status == 'atendida')
+    <a href="{{ route('appointments.showDetails', $appointment->id) }}" class="btn btn-sm btn-info">
+        <i class="fas fa-eye"></i> Ver detalles
+    </a>
+@endif
+
                             </td>
                             
                         </tr>
